@@ -1,0 +1,27 @@
+{{- define "tree" -}}
+type _binDataTreeElement struct{
+    Name          string
+    RemainingPath string
+    Getter        func() string
+    Children      map[string]*_binDataTreeElement
+}
+
+var _binDataTree = map[string]*_binDataTreeElement{ {{ template "recursiveTree" . }}
+}
+{{- end -}}
+
+{{- define "recursiveTree" -}}
+{{- range $k, $v := . }}
+"{{ $k }}":{
+Name: "{{ $k }}",
+{{- if gt (len $v.Children) 0 }}
+Children: map[string]*_binDataTreeElement{
+{{- template "recursiveTree" $v.Children }}
+},
+{{- else }}
+Getter: _binDataGetVar{{ .GoName }},
+RemainingPath: "{{ .RemainingPath }}",
+{{- end }}
+},
+{{- end }}
+{{- end -}}

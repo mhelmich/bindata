@@ -1,0 +1,76 @@
+{{- define "tarbz" -}}
+var (
+    _binDataInMemoryFileCache = map[string][]byte{}
+    _binDataInMemoryFileCacheMutex = &sync.Mutex{}
+)
+
+func _binDataReadFile(name string, getter func() string) ([]byte, error) {
+    if name == "" || getter == nil {
+        return nil, os.ErrNotExist
+    }
+
+    data, ok := _binDataInMemoryFileCache[name]
+    if ok {
+        return data, nil
+    }
+
+    _binDataInMemoryFileCacheMutex.Lock()
+    defer _binDataInMemoryFileCacheMutex.Unlock()
+
+    data, ok = _binDataInMemoryFileCache[name]
+    if ok {
+        return data, nil
+    }
+
+    gz, err := gzip.NewReader(strings.NewReader(getter()))
+    if err != nil {
+        return nil, fmt.Errorf("error reading file %s: %s", name, err.Error())
+    }
+
+    defer func() { _ = gz.Close() }()
+    tr := tar.NewReader(gz)
+    for {
+        header, err := tr.Next()
+        if err == io.EOF {
+            break
+        } else if err != nil {
+            return nil, err
+        }
+
+        var buf bytes.Buffer
+        _, err = io.CopyN(&buf, tr, header.Size)
+        if err != nil {
+            return nil, fmt.Errorf("error decompressing file %s: %s", name, err.Error())
+        }
+
+        _binDataInMemoryFileCache[header.Name] = buf.Bytes()
+    }
+
+    data, ok = _binDataInMemoryFileCache[name]
+    if !ok {
+        return nil, fmt.Errorf("can't find file %s", name)
+    }
+    
+    return data, nil
+}
+
+func _binDataFindPathInTree(path string) (func() string, string) {
+	parts := strings.Split(path, _bindataPathSeparator)
+	if strings.HasPrefix(path, _bindataPathSeparator) {
+		parts = parts[1:]
+	}
+
+	m := _binDataTree
+	var te *_binDataTreeElement
+	var ok bool
+	for _, part := range parts {
+		te, ok = m[part]
+		if !ok {
+			return nil, ""
+		}
+		m = te.Children
+	}
+
+	return te.Getter, te.RemainingPath
+}
+{{- end -}}

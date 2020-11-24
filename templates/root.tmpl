@@ -1,0 +1,54 @@
+package {{ .PackageName }}
+
+//
+// Table of Contents
+{{- range .FileNames }}
+// {{ . }}
+{{- end }}
+//
+
+import (
+	"archive/tar"
+	"bytes"
+	"compress/gzip"
+	"fmt"
+	"io"
+	"os"
+	"strings"
+	"sync"
+)
+
+{{ template "tree" .Tree }}
+
+var (
+    _bindataPathSeparator = fmt.Sprintf("%c", os.PathSeparator)
+
+    _binDataAllFilesNames = []string{
+    {{- range .FileNames }}
+        "{{ . }}",
+    {{- end }}
+    }
+)
+
+{{ range .Files -}}
+func _binDataGetVar{{ .GoName }}() string {
+    return _binDataVar{{ .GoName }}
+}
+
+var _binDataVar{{ .GoName }} = "{{ .Content }}"
+{{- end }}
+
+// FileNames returns a list of all files in this bindata file.
+func FileNames() []string {
+    return _binDataAllFilesNames
+}
+
+// ReadFile reads the file named by filename and returns the contents.
+// A successful call returns err == nil, not err == EOF.
+// Because ReadFile reads the whole file, it does not treat an EOF from Read as an error to be reported. 
+func ReadFile(path string) ([]byte, error) {
+    getter, remainingPath := _binDataFindPathInTree(path)
+    return _binDataReadFile(remainingPath, getter)
+}
+
+{{ template "tarbz" . }}
