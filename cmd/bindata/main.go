@@ -35,7 +35,10 @@ func main() {
 }
 
 func parseFlags() error {
-	flags.Parse(os.Args[1:])
+	err := flags.Parse(os.Args[1:])
+	if err != nil {
+		return err
+	}
 
 	if packageNameFlag == nil || *packageNameFlag == "" {
 		return fmt.Errorf("package flag not set")
