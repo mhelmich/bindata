@@ -2,7 +2,7 @@ name: pr-pipeline
 
 on:
   pull_request:
-    branches: master
+    branches: main
 
 jobs:
   test-runner:
