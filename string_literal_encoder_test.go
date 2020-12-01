@@ -18,16 +18,21 @@ func TestStringLiteralEncoderBasic(t *testing.T) {
 }
 
 func TestStringLiteralEncoderUnevenNumBytes(t *testing.T) {
+	var n int
+	var err error
+
 	hexBuf := &bytes.Buffer{}
 	enc := hex.NewEncoder(hexBuf)
-	enc.Write([]byte("Hello World!"))
+	n, err = enc.Write([]byte("Hello World!"))
+	assert.Nil(t, err)
+	assert.Equal(t, 12, n)
 	bites := hexBuf.Bytes()
 
 	buf := &bytes.Buffer{}
 	w := &hexStringLiteralEncoder{
 		writer: buf,
 	}
-	n, err := w.Write(bites[:11])
+	n, err = w.Write(bites[:11])
 	assert.Nil(t, err)
 	assert.Equal(t, 11, n)
 	n, err = w.Write(bites[11:])

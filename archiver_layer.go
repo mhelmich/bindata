@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 type archiverLayer interface {
@@ -40,12 +41,12 @@ func (ta *tarArchiver) WriteFile(path string, fileInfo os.FileInfo) error {
 		return err
 	}
 
-	osFile, err := os.Open(path)
+	osFile, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return err
 	}
 
-	defer osFile.Close()
+	defer func() { _ = osFile.Close() }()
 	_, err = io.Copy(ta.tw, osFile)
 	if err != nil {
 		return err

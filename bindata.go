@@ -159,7 +159,7 @@ func (b *bindata) compress(pais []*pathInfo, out io.Writer) error {
 	l := newStringLiteralEncoder(out)
 	c := newCompressorLayer(b.opts.Compressor, l)
 	w := newArchiverLayer(b.opts.Archiver, c)
-	defer w.Close()
+	defer func() { _ = w.Close() }()
 
 	for _, pai := range pais {
 		err := w.WriteFile(pai.path, pai.info)
@@ -200,7 +200,7 @@ func (b *bindata) resolvePathsToFiles(paths []string) ([]*pathInfo, error) {
 			}
 
 			if fileInfo.IsDir() {
-				filepath.Walk(matchedPath, func(file string, fi os.FileInfo, err error) error {
+				err = filepath.Walk(matchedPath, func(file string, fi os.FileInfo, err error) error {
 					if err != nil {
 						return err
 					}
@@ -214,6 +214,10 @@ func (b *bindata) resolvePathsToFiles(paths []string) ([]*pathInfo, error) {
 
 					return nil
 				})
+
+				if err != nil {
+					return nil, err
+				}
 			} else {
 				matchedFiles = append(matchedFiles, &pathInfo{
 					path: matchedPath,
