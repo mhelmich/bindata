@@ -17,7 +17,7 @@ var (
 func main() {
 	err := parseFlags()
 	if err != nil {
-		_ = fmt.Errorf("error generating bin data file; %s", err.Error())
+		fmt.Printf("error generating bin data file; %s", err.Error())
 		os.Exit(1)
 	}
 
@@ -29,9 +29,10 @@ func main() {
 		bindata.Compressor(bindata.Bz),
 	).Archive()
 	if err != nil {
-		_ = fmt.Errorf("error generating bin data file; %s", err.Error())
+		fmt.Printf("error generating bin data file; %s", err.Error())
 		os.Exit(1)
 	}
+	fmt.Printf("Successfully generated bindata file at '%s'", *outputFlag)
 }
 
 func parseFlags() error {
@@ -41,11 +42,11 @@ func parseFlags() error {
 	}
 
 	if packageNameFlag == nil || *packageNameFlag == "" {
-		return fmt.Errorf("package flag not set")
+		*packageNameFlag = "bindata"
 	}
 
 	if outputFlag == nil || *outputFlag == "" {
-		return fmt.Errorf("output flag not set")
+		*outputFlag = "bindata/bindata.go"
 	}
 
 	return nil

@@ -147,7 +147,12 @@ func (b *bindata) Archive() error {
 		return err
 	}
 
-	err = b.renderFile(input, b.opts.OutputFile, TarBz)
+	absOutputPath, err := filepath.Abs(b.opts.OutputFile)
+	if err != nil {
+		return err
+	}
+
+	err = b.renderFile(input, absOutputPath, TarBz)
 	if err != nil {
 		return err
 	}
@@ -180,6 +185,7 @@ func (b *bindata) resolvePathsToFiles(paths []string) ([]*pathInfo, error) {
 	if len(paths) > 0 {
 		var matchedPaths []string
 		for _, path := range paths {
+			path = strings.TrimSpace(path)
 			if strings.HasPrefix(path, "..") {
 				glog.Infof("won't include path starting with '..'. Skipping %s", path)
 				continue
