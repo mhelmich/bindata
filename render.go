@@ -54,7 +54,7 @@ func (b *bindata) mkdir(outputFile string) error {
 	} else if !stat.IsDir() {
 		tokens := strings.Split(dir, string(filepath.Separator))
 		p := strings.Join(tokens[:len(tokens)-1], string(filepath.Separator))
-		return fmt.Errorf("can't create directory '%s' - found file with the same name '%s' in folder '%s'.", filepath.Base(dir), filepath.Base(dir), p)
+		return fmt.Errorf("can't create directory '%s' - found file with the same name '%s' in folder '%s'", filepath.Base(dir), filepath.Base(dir), p)
 	}
 
 	return nil
